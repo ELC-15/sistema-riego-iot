@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Servicio 1: El Broker MQTT propio (Ya no usaremos el público de internet)
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: riego_broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+    networks:
+      - riego_network
+
+  # Servicio 2: Tu Base de Datos Relacional (Ejemplo con PostgreSQL, puedes usar MySQL)
+  database:
+    image: postgres:15-alpine
+    container_name: riego_db
+    environment:
+      POSTGRES_USER: emanuel
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: sistema_riego
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - riego_network
+
+  # Servicio 3: Tu aplicación Node.js (Backend + Dashboard)
+  app:
+    build: .
+    container_name: riego_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - MQTT_HOST=mosquitto
+      - DB_HOST=database
+    depends_on:
+      - mosquitto
+      - database
+    networks:
+      - riego_network
+
+networks:
+  riego_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
