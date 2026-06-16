@@ -1,0 +1,53 @@
+services:
+  # Servicio 1: Broker MQTT
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: riego_broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+    networks:
+      - riego_network
+
+  # Servicio 2: Base de Datos MySQL
+  database:
+    image: mysql:8.0
+    container_name: riego_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sistema_riego
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - riego_network
+
+  # Servicio 3: Tu aplicación Node.js
+  app:
+    build: .
+    container_name: riego_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - MQTT_HOST=mosquitto
+      - DB_HOST=database
+      - DB_USER=admin
+      - DB_PASSWORD=password123
+      - DB_NAME=sistema_riego
+    depends_on:
+      - mosquitto
+      - database
+    networks:
+      - riego_network
+
+networks:
+  riego_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
