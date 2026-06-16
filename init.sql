@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS lecturas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    temperatura FLOAT,
+    humedad INT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
